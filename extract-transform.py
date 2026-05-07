@@ -19,6 +19,7 @@ def convertXLStoCSV(filenameIn : str, filenameOut : str) :
 
 ## Script fourni par le professeur pour mettre en forme les données
 
+import pandas as pd
 from csv import QUOTE_NONNUMERIC
 
 dept = '03'
@@ -60,18 +61,3 @@ df_insee['CODGEO'] = df_insee['CODGEO'].str.zfill(5)
 df_insee = df_insee[df_insee['DEP'] == dept]
 df_insee.to_csv(f'clean/{dept}-insee.csv', sep=",", index=False, quoting=QUOTE_NONNUMERIC)
 
-# Labels
-# Region
-# Departement
-# Commune
-# Candidat
-# Liste
-# Nuance
-# Genre
-
-# Relations
-# Candidat->Commune->Departement->Region
-# Candidat->Liste
-# Candidat->Nuance
-# Liste->Nuance
-# Genre->Candidat->Commune->Departement->Region

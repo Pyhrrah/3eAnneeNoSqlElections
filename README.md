@@ -141,4 +141,64 @@ match (c: Candidat )-[:CANDIDAT_DANS]->(com: Commune) return com.name as Commune
 
 match (c: Candidat )-[:TETE_DE]->(:Liste)-[:A_NUANCE]->(n:Nuance) return n.nom as Nuance, COUNT(c) as nbCandidats order by nbCandidats desc limit 100;
 
+match (c:Candidat)-[r]-(connected) where c.name =~ '(?i).*phil.* return c, r , connected;
+
+merge (F:Genre {nom:'Féminin'})
+merge (M:Genre {nom:'Masculin'})
+Match (cand: Candidat)
+    with cand, cand.sexe as s, F, M
+    with cand, CASE s WHEN 'F' THEN F Else M end AS genre
+
+merge (cand)-[:GENRE]->(genre)
+return count(cand) as nb_candidats_avec_genre;
+
+match (cand:Candidat)-[:GENRE]->(g:Genre)
+return g.nom as genre, count(cand) as nb_candidats;
+
+
+/// Création des nœuds TailleVille
+MERGE (t1:TailleVille {nom:'1-Très petite'})
+MERGE (t2:TailleVille {nom:'2-Petite'})
+MERGE (t3:TailleVille {nom:'3-Moyenne'})
+MERGE (t4:TailleVille {nom:'4-Grande'})
+MERGE (t5:TailleVille {nom:'5-Très grande'})
+
+/// Lier chaque commune à sa taille
+MATCH (c:Commune)
+    WITH c,
+    CASE
+        WHEN c.population < 2000 THEN t1
+        WHEN c.population < 10000 THEN t2
+        WHEN c.population < 20000 THEN t3
+        WHEN c.population < 100000 THEN t4
+    ELSE t5
+    END AS taille
+
+MERGE (c)-[:A_TAILLE]->(taille) ;
+
+
+match (t:TailleVille) DETACH DELETE t;
+
+
+match (c1: Commune {codeINSEE: '03190'}), (c2: Commune)
+where c1<> c2
+    return c2.codeINSEE AS CodeINSEE, c2.name as Commune,
+    point.distance(c1.location,c2.location)/1000 as distance_km
+order by distance_km asc limit 10;
+
+
+/*match (c1:Commune)
+match (c2:Commune)
+    where c1<>c2
+
+with c1,c2, point.distance(c1.location, c2.location) as dist order by dist asc
+with c1, collect({node: c2, distance: dist})[0..3] as top3 unwind top3 as t
+with c1, t.node as c2.node, t.distance as dist merge (c1)-[r:Proche]->
+
+*/
+
+match (start:Commune {codeINSEE:'92035}), (end:Commune {codeINSEE:'92002})
+Match path = shortestPath((start)-[:Proche*]-(end))
+return nodes(path) as communes, relationships(path) as liens, [r IN relationships(path) | r.distance/1000] as distance_km;
+
 ```
